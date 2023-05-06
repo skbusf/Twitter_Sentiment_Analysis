@@ -20,6 +20,7 @@ mysql_username = 'root'
 mysql_password = 'password'
 mysql_jdbc_url = 'jdbc:mysql://' + mysql_host + ':' + mysql_port + '/' + mysql_db_name
 
+#this method writed the data to mysql repo
 def write_to_mysql(df, epoch_id):
     df.na.drop() \
         .write.format("jdbc") \
@@ -49,17 +50,21 @@ if __name__ == "__main__":
 
     spark.sparkContext.setLogLevel("Error")
 
+    #reading the data from kafka topic
     tweets = spark.readStream.format("kafka") \
             .option("kafka.bootstrap.servers", kafka_bootstrap_server) \
             .option("subscribe", kafka_topic) \
             .option("startingoffsets", "latest") \
             .load()
 
-    print("Printing Schema of Tweets: ")
-    tweets.printSchema()
+    # #printing the schema of the tweets
+    # print("Printing Schema of Tweets: ")
+    # tweets.printSchema()
 
+    # #casting the key and value columns to string
     stream_detail_df = tweets.selectExpr('CAST(key AS STRING)','CAST(value AS STRING)', 'timestamp')
 
+    # schema of the data in the kafka topic
     tweets_schema = StructType() \
         .add("date", StringType()) \
         .add("id", StringType()) \
@@ -68,8 +73,10 @@ if __name__ == "__main__":
         .add("like_count", StringType()) \
         .add("retweet_count", StringType())
     
+    # parsing the data from kafka topic
     tweets_df_1 = stream_detail_df.select(from_json(col("value").cast("string"), tweets_schema).alias("tweets"), "timestamp")
 
+    # unpacking the data from kafka topic
     tweets_df = tweets_df_1.select("tweets.*", "timestamp")
 
     # {'date': '2023-03-29 21:00:48+00:00', 
@@ -79,8 +86,9 @@ if __name__ == "__main__":
     #  'like_count': 5.0, 
     #  'retweet_count': 0.0}
 
-    print('Printing Schema of tweets_df: ')
-    tweets_df.printSchema()
+
+    # print('Printing Schema of tweets_df: ')
+    # tweets_df.printSchema()
 
     # Text cleaning function
     def cleanTweet(tweet: str) -> str:
@@ -137,13 +145,14 @@ if __name__ == "__main__":
     polarity_tw = subjectivity_tw.withColumn("polarity", polarity_func_udf(col("processed_text")))
     sentiment_tw = polarity_tw.withColumn("sentiment", sentiment_func_udf(col("polarity")))
 
-    # sentiment_tw.show(6)
+    # printing the processed data to console
     tweets_stream = sentiment_tw.writeStream \
     .outputMode("append") \
     .trigger(processingTime="10 second") \
     .format("console") \
     .start()
 
+    # writing the processed data to mysql
     tweets_stream = sentiment_tw.writeStream.outputMode("append").trigger(processingTime="10 second").foreachBatch(write_to_mysql).start()
 
     tweets_stream.awaitTermination() 
