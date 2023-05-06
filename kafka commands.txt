@@ -1,0 +1,49 @@
+= to start zookeeper
+
+zookeeper-server-start.bat ..\..\config\zookeeper.properties 
+
+
+= to start kafka
+
+kafka-server-start.bat ..\..\config\server.properties 
+
+
+= to create topic
+
+kafka-topics.bat --create --topic big_data_project --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
+
+
+= to create cli producer
+
+kafka-console-producer.bat --broker-list localhost:9092 --topic big_data_project 
+
+
+= to create cli consumer
+
+kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic big_data_project --from-beginning 
+
+
+= to check topics in kafka.
+
+kafka-topics.bat --bootstrap-server localhost:9092 --list
+
+
+=to delete data in kafka topic
+
+kafka-topics.bat --bootstrap-server localhost:9092 --topic big_data_project --delete
+
+
+=to run the spark streaming application
+
+spark-submit --packages mysql:mysql-connector-java:8.0.28,org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.1 .\spark_streaming.py
+
+
+# .config("spark.streaming.stopGracefullyOnShutdown", "true") \
+        # .config("spark.jars", "file:///C:/Users/batch_2kjxgc7/Desktop/big_data_project/spark-sql-kafka-0-10_2.11-2.4.5.jar") \
+        # .config("spark.jars", "file:///C:/Users/batch_2kjxgc7/Desktop/big_data_project/kafka-clients-2.7.0.jar") \
+        # .config("spark.executor.extraClassPath", "file:///C:/Users/batch_2kjxgc7/Desktop/big_data_project/spark-sql-kafka-0-10_2.11-2.4.5.jar") \
+        # .config("spark.executor.extraClassPath", "file:///C:/Users/batch_2kjxgc7/Desktop/big_data_project/kafka-clients-2.7.0.jar") \
+        # .config("spark.executor.extraLibrary", "file:///C:/Users/batch_2kjxgc7/Desktop/big_data_project/spark-sql-kafka-0-10_2.11-2.4.5.jar") \
+        # .config("spark.executor.extraLibrary", "file:///C:/Users/batch_2kjxgc7/Desktop/big_data_project/kafka-clients-2.7.0.jar") \
+        # .config("spark.driver.extraClassPath", "file:///C:/Users/batch_2kjxgc7/Desktop/big_data_project/spark-sql-kafka-0-10_2.11-2.4.5.jar") \
+        # .config("spark.driver.extraClassPath", "file:///C:/Users/batch_2kjxgc7/Desktop/big_data_project/kafka-clients-2.7.0.jar") \
